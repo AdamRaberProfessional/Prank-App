@@ -47,7 +47,7 @@
             android:contentDescription="image"
             android:layout_marginBottom="5dp"
             android:gravity="bottom"
-            android:text="Tap to add orchange background"
+            android:text="Tap to add or change background"
             android:textSize="15sp"
             />
 

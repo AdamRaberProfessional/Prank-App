@@ -26,7 +26,9 @@ class BigBlackBarry : AppCompatActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
 
         btn_permissions.setOnClickListener(){
+
             if(isReadStorageAllowed()){
+
 
                 val pickPhotoIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
@@ -97,6 +99,23 @@ class BigBlackBarry : AppCompatActivity() {
         private const val STORAGE_PERMISSION_CODE = 1
         private const val GALLERY = 2
     }
+
+    private fun addDateToDataBase(){
+        val calendar = java.util.Calendar.getInstance()
+        val dateTime = calendar.time
+        Log.i("DATE", "" + dateTime)
+
+        val sdf = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+        val date = sdf.format(dateTime)
+
+
+        val dbHandler = SqliteOpenHelper(this, null)
+        dbHandler.addDate(date)
+
+        Log.e("Formatted Date : ", "" + date)
+
+
+    }//162
 
 
 }
