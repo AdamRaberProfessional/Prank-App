@@ -26,7 +26,6 @@ class BigBlackBarry : AppCompatActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
 
         btn_permissions.setOnClickListener(){
-
             if(isReadStorageAllowed()){
 
 
@@ -101,7 +100,7 @@ class BigBlackBarry : AppCompatActivity() {
     }
 
     private fun addDateToDataBase(){
-        val calendar = java.util.Calendar.getInstance()
+        val calendar = Calendar.getInstance()
         val dateTime = calendar.time
         Log.i("DATE", "" + dateTime)
 
