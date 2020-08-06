@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
             if(et_name.text.toString().isEmpty()){
                 Toast.makeText(this,"Please enter the name", Toast.LENGTH_SHORT).show()
             }else {
-                val intent = Intent(this, BigBlackBarry::class.java)
+                val intent = Intent(this, PrankActivity::class.java)
                 startActivity(intent)
             }
         }
