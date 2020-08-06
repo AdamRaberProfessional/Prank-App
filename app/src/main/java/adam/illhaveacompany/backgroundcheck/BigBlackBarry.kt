@@ -52,7 +52,7 @@ class BigBlackBarry : AppCompatActivity() {
                         iv_background.visibility = View.VISIBLE
                         iv_background.setImageURI(data.data)
                     }else{
-                        Toast.makeText(this, "Image not transferable", Toast.LENGTH_LONG)
+                        Toast.makeText(this, "Image not transferable", Toast.LENGTH_LONG).show()
                     }
                 }catch(e: Exception){
                     e.printStackTrace()
