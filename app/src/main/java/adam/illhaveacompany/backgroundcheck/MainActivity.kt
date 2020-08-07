@@ -1,11 +1,9 @@
 package adam.illhaveacompany.backgroundcheck
 
 
-import adam.illhaveacompany.backgroundcheck.R
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.SyncStateContract
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*

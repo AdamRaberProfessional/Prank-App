@@ -31,7 +31,7 @@ class DatabaseHandler (context: Context):
     }//10
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db!!.execSQL("DROP TABLE IF EXISTS " + TABLE_PICTURE)
+        db!!.execSQL("DROP TABLE IF EXISTS $TABLE_PICTURE")
         onCreate(db)
     }//11
 
@@ -84,18 +84,34 @@ class DatabaseHandler (context: Context):
 
 
     fun areTherePictures() : Boolean {
-
-
         val database = this.readableDatabase
         val NoOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
 
         return if (NoOfRows == 0) {
             false
         } else return true
-
-
     }//21
 
+    fun areThereTwoPictures() : Boolean {
+        val database = this.readableDatabase
+        val NoOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
+
+        return if (NoOfRows == 2) {
+            false
+        } else return true
+    }//24
+
+    fun deleteFirstRow() {
+        val db = this.readableDatabase
+
+        val cursor: Cursor =
+            db.query(TABLE_PICTURE, null, null, null, null, null, null)
+        if (cursor.moveToFirst()) {
+            val rowId = cursor.getString(cursor.getColumnIndex(KEY_ID))
+            db.delete(TABLE_PICTURE, "$KEY_ID=?", arrayOf(rowId))
+        }
+        db.close()
+    }//23
 
 
 }
