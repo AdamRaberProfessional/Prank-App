@@ -10,6 +10,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     >
+    <!---->
 
     <!--lowest layer (image view then drawing view) starts from the top -->
     <ImageView

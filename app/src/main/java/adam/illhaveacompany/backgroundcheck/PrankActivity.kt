@@ -127,7 +127,7 @@ class PrankActivity : AppCompatActivity() {
             Toast.makeText(applicationContext, "image saved successfully", Toast.LENGTH_SHORT).show()
         }
     }//15
-
+//
     fun getLastPicture(): ByteArray  {
         val databaseHandler : DatabaseHandler = DatabaseHandler(this)
         val pictureList = databaseHandler.getPictureList()

@@ -75,7 +75,7 @@ class DatabaseHandler (context: Context):
                     pictureList.add(pic)
                 } while(cursor.moveToNext())
             }
-        }
+        }//
 
             return pictureList
 
