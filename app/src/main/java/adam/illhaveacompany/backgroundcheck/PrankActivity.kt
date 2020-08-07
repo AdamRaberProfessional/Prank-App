@@ -1,121 +1,178 @@
 package adam.illhaveacompany.backgroundcheck
 
+import adam.illhaveacompany.saveimagesinsqlite.DatabaseHandler
+import adam.illhaveacompany.saveimagesinsqlite.Picture
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_prank.*
-import java.text.SimpleDateFormat
-import java.util.*
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.InputStream
 
 
 //github change
 class PrankActivity : AppCompatActivity() {
+
+    private val STORAGE_PERMISSION_CODE = 1
+    private val GALLERY = 2
+    //4
+
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_prank)
 
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        val databaseHandler = DatabaseHandler(this)
+        if(databaseHandler.areTherePictures()) {
+            val imageInBitmapForm = BitmapFactory.decodeByteArray(getLastPicture(), 0, getLastPicture().size)
+            val imageInInputStream: InputStream = ByteArrayInputStream(getLastPicture())
+            val rotatedImage = rotateBitmap(imageInBitmapForm, getCameraPhotoOrientation(imageInInputStream))
+            iv_image.setImageBitmap(rotatedImage)
+        } //20
 
-        btn_permissions.setOnClickListener(){
-            if(isReadStorageAllowed()){
+
+        //iv_image.background = the result of the bitmap translated back to an image
+
+        change_background_button.setOnClickListener { view ->
+            if (isPermissionAllowed(Manifest.permission.READ_EXTERNAL_STORAGE)) {
 
 
-                val pickPhotoIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                val pickPhotoIntent =
+                    Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
                 startActivityForResult(pickPhotoIntent, GALLERY)
-
-            }else{
-                requestStoragePermission()
+            } else {
+                requestPermission(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    STORAGE_PERMISSION_CODE
+                )
             }
-
-
-
         }
 
     }
+
+
+    private fun requestPermission(sPermissionName: String, iRequestCode: Int) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, sPermissionName)) {
+            //If the user has denied the permission previously your code will come to this block
+            //Here you can explain why you need this permission
+            //Explain here why you need this permission
+        }
+
+        ActivityCompat.requestPermissions(this, arrayOf(sPermissionName), iRequestCode)
+    }//5
+
+
+    private fun isPermissionAllowed(sPermission: String): Boolean {
+        val result = ContextCompat.checkSelfPermission(this, sPermission)
+
+        return if (result == PackageManager.PERMISSION_GRANTED) true else false
+    }//6
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(resultCode == Activity.RESULT_OK) {
-            if(requestCode == GALLERY){
-                try{
-                    if(data!!.data != null){
-                        iv_background.visibility = View.VISIBLE
-                        iv_background.setImageURI(data.data)
-                    }else{
-                        Toast.makeText(this, "Image not transferable", Toast.LENGTH_LONG).show()
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == GALLERY) {
+                try {
+                    if (data!!.data != null) {
+                        //this line is not necessarily needed
+                        iv_image.visibility = View.VISIBLE
+
+                        val imageUri = data.data
+                        iv_image.setImageURI(data.data)
+
+                        val databaseHandler: DatabaseHandler = DatabaseHandler(this)
+                        if(databaseHandler.areThereTwoPictures()){
+                            databaseHandler.deleteFirstRow()
+                        }
+                        if (imageUri != null) {
+                            val imageInByteArray = contentResolver.openInputStream(imageUri)?.readBytes()
+                            if (imageInByteArray != null) {
+                                addImageToDatabase(imageInByteArray)
+                            }
+                        }
+
+
+
+                    } else {
+                        Toast.makeText(this, "image not transferable", Toast.LENGTH_SHORT).show()
                     }
-                }catch(e: Exception){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
-
-                }
-        }
-
-    }
-
-    private fun requestStoragePermission(){
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this,
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE).toString())){
-            Toast.makeText(this, "need permission", Toast.LENGTH_SHORT).show()
-        }
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), STORAGE_PERMISSION_CODE)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == STORAGE_PERMISSION_CODE)
-        {
-            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
-             Toast.makeText(this, "permission granted", Toast.LENGTH_LONG).show()
-            } else{
-                Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show()
             }
         }
+    }//16
+    private fun addImageToDatabase(image: ByteArray) {
+        val databaseHandler: DatabaseHandler = DatabaseHandler(this)
+
+        val status = databaseHandler.addPicture(Picture(0, image))
+
+        if(status > -1) {
+            Toast.makeText(applicationContext, "image saved successfully", Toast.LENGTH_SHORT).show()
+        }
+    }//15
+
+    fun getLastPicture(): ByteArray  {
+        val databaseHandler : DatabaseHandler = DatabaseHandler(this)
+        val pictureList = databaseHandler.getPictureList()
+        val lastPicture = pictureList[pictureList.size - 1]
+        val lastPictureByteArray = lastPicture.image
+
+        return lastPictureByteArray
+    }//18
+
+    fun rotateBitmap(source: Bitmap, angle: Int): Bitmap? {
+        val matrix = Matrix()
+        matrix.postRotate(angle.toFloat())
+        return Bitmap.createBitmap(
+            source,
+            0,
+            0,
+            source.width,
+            source.height,
+            matrix,
+            true
+        )
+    }//19
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun getCameraPhotoOrientation(imageInBitmapForm: InputStream?): Int {
+        var rotate = 0
+        try {
+            var exif: ExifInterface? = null
+            try {
+                exif = ExifInterface(imageInBitmapForm)
+            } catch (e1: IOException) {
+                e1.printStackTrace()
+            }
+            val orientation = exif!!.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION, 0
+            )
+            rotate = when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                ExifInterface.ORIENTATION_ROTATE_270 -> 90
+                else -> 0
+            }
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return rotate
     }
-
-    private fun isReadStorageAllowed(): Boolean {
-        var result = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-
-        return result == PackageManager.PERMISSION_GRANTED
-    }
-
-    companion object {
-        private const val STORAGE_PERMISSION_CODE = 1
-        private const val GALLERY = 2
-    }
-
-    private fun addDateToDataBase(){
-        val calendar = Calendar.getInstance()
-        val dateTime = calendar.time
-        Log.i("DATE", "" + dateTime)
-
-        val sdf = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-        val date = sdf.format(dateTime)
-
-
-        val dbHandler = SqliteOpenHelper(this, null)
-        dbHandler.addDate(date)
-
-        Log.e("Formatted Date : ", "" + date)
-
-
-    }//162
-
-
 }
-
