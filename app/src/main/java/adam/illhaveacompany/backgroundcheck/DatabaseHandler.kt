@@ -24,11 +24,10 @@ class DatabaseHandler (context: Context):
     }//9
 
     override fun onCreate(db: SQLiteDatabase?) {
-        val CREATE_PICTURE_TABLE = ("CREATE TABLE " + TABLE_PICTURE + "("
+
+        db?.execSQL("CREATE TABLE " + TABLE_PICTURE + "("
                 + KEY_ID + " INTEGER PRIMARY KEY," + KEY_PICTURE + " TEXT" + ")")
-        //pushes the code through
-        db?.execSQL(CREATE_PICTURE_TABLE)
-    }//10
+    }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db!!.execSQL("DROP TABLE IF EXISTS $TABLE_PICTURE")
@@ -41,15 +40,16 @@ class DatabaseHandler (context: Context):
         val contentValues = ContentValues()
 
         contentValues.put(KEY_PICTURE, picture.image)
+        contentValues.put(KEY_ID, 0)
 
         val success = db.insert(TABLE_PICTURE, null, contentValues)
         db.close()
         return success
     }//14
 
-    fun getPictureList() : ArrayList<Picture> {
-        val pictureList: ArrayList<Picture> = ArrayList<Picture>()
-        val selectQuery = "SELECT * FROM $TABLE_PICTURE"
+    fun getPicture() : ByteArray? {
+        var picture: ByteArray? = null
+        val selectQuery = "SELECT $KEY_PICTURE FROM $TABLE_PICTURE WHERE $KEY_ID = 0"
 
         val db = this.readableDatabase
         var cursor: Cursor? = null
@@ -60,21 +60,16 @@ class DatabaseHandler (context: Context):
             db.execSQL(selectQuery)
         }//5
 
-        var id : Int
-        var picture: ByteArray
 
         if (cursor != null) {
             if(cursor.moveToFirst()) {
                 do{
-                    id = cursor.getInt(cursor.getColumnIndex(KEY_ID))
                     picture = cursor.getBlob(cursor.getColumnIndex(KEY_PICTURE))
-                    val pic = Picture(id, picture)
-                    pictureList.add(pic)
                 } while(cursor.moveToNext())
             }
-        }//
+        }
 
-            return pictureList
+        return picture
 
     }//17
 
@@ -89,26 +84,7 @@ class DatabaseHandler (context: Context):
         } else return true
     }//21
 
-    fun areThereTwoPictures() : Boolean {
-        val database = this.readableDatabase
-        val numberOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
 
-        return if (numberOfRows == 2) {
-            false
-        } else return true
-    }//24
-
-    fun deleteFirstRow() {
-        val db = this.readableDatabase
-
-        val cursor: Cursor =
-            db.query(TABLE_PICTURE, null, null, null, null, null, null)
-        if (cursor.moveToFirst()) {
-            val rowId = cursor.getString(cursor.getColumnIndex(KEY_ID))
-            db.delete(TABLE_PICTURE, "$KEY_ID=?", arrayOf(rowId))
-        }
-        db.close()
-    }//23
 
 
 }

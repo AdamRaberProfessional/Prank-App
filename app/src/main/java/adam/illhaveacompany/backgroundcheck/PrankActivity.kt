@@ -37,11 +37,11 @@ class PrankActivity : AppCompatActivity() {
 
         val databaseHandler = DatabaseHandler(this)
         if(databaseHandler.areTherePictures()) {
-            val imageInBitmapForm = BitmapFactory.decodeByteArray(getLastPicture(), 0, getLastPicture().size)
-            val imageInInputStream: InputStream = ByteArrayInputStream(getLastPicture())
+            val imageInBitmapForm = BitmapFactory.decodeByteArray(databaseHandler.getPicture(), 0, databaseHandler.getPicture()!!.size)
+            val imageInInputStream: InputStream = ByteArrayInputStream(databaseHandler.getPicture())
             val rotatedImage = rotateBitmap(imageInBitmapForm, getCameraPhotoOrientation(imageInInputStream))
             iv_image.setImageBitmap(rotatedImage)
-        } //20
+        }
 
 
         //iv_image.background = the result of the bitmap translated back to an image
@@ -79,7 +79,12 @@ class PrankActivity : AppCompatActivity() {
     private fun isPermissionAllowed(sPermission: String): Boolean {
         val result = ContextCompat.checkSelfPermission(this, sPermission)
 
-        return if (result == PackageManager.PERMISSION_GRANTED) true else false
+        if(result == PackageManager.PERMISSION_GRANTED){
+            return true
+        }else{
+            return false
+        }
+
     }//6
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -94,10 +99,6 @@ class PrankActivity : AppCompatActivity() {
                         val imageUri = data.data
                         iv_image.setImageURI(data.data)
 
-                        val databaseHandler: DatabaseHandler = DatabaseHandler(this)
-                        if(databaseHandler.areThereTwoPictures()){
-                            databaseHandler.deleteFirstRow()
-                        }
                         if (imageUri != null) {
                             val imageInByteArray = contentResolver.openInputStream(imageUri)?.readBytes()
                             if (imageInByteArray != null) {
@@ -125,15 +126,7 @@ class PrankActivity : AppCompatActivity() {
             Toast.makeText(applicationContext, "image saved successfully", Toast.LENGTH_SHORT).show()
         }
     }//15
-//
-    fun getLastPicture(): ByteArray  {
-        val databaseHandler : DatabaseHandler = DatabaseHandler(this)
-        val pictureList = databaseHandler.getPictureList()
-        val lastPicture = pictureList[pictureList.size - 1]
-        val lastPictureByteArray = lastPicture.image
 
-        return lastPictureByteArray
-    }//18
 
     fun rotateBitmap(source: Bitmap, angle: Int): Bitmap? {
         val matrix = Matrix()
