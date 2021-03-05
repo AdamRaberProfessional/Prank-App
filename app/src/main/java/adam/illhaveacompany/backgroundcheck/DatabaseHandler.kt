@@ -1,5 +1,6 @@
 package adam.illhaveacompany.saveimagesinsqlite
 
+import adam.illhaveacompany.backgroundcheck.Picture
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -13,7 +14,6 @@ class DatabaseHandler (context: Context):
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION){
 
     companion object {
-        //changed when I want to add a column
         private const val DATABASE_VERSION = 1
         private const val DATABASE_NAME = "PictureDatabase"
 
@@ -67,11 +67,8 @@ class DatabaseHandler (context: Context):
             if(cursor.moveToFirst()) {
                 do{
                     id = cursor.getInt(cursor.getColumnIndex(KEY_ID))
-                    //*POSSIBLE PROBLEM*
                     picture = cursor.getBlob(cursor.getColumnIndex(KEY_PICTURE))
-
                     val pic = Picture(id, picture)
-
                     pictureList.add(pic)
                 } while(cursor.moveToNext())
             }
@@ -85,18 +82,18 @@ class DatabaseHandler (context: Context):
 
     fun areTherePictures() : Boolean {
         val database = this.readableDatabase
-        val NoOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
+        val numberOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
 
-        return if (NoOfRows == 0) {
+        return if (numberOfRows == 0) {
             false
         } else return true
     }//21
 
     fun areThereTwoPictures() : Boolean {
         val database = this.readableDatabase
-        val NoOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
+        val numberOfRows = DatabaseUtils.queryNumEntries(database, TABLE_PICTURE).toInt()
 
-        return if (NoOfRows == 2) {
+        return if (numberOfRows == 2) {
             false
         } else return true
     }//24

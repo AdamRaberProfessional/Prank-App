@@ -1,7 +1,6 @@
 package adam.illhaveacompany.backgroundcheck
 
 import adam.illhaveacompany.saveimagesinsqlite.DatabaseHandler
-import adam.illhaveacompany.saveimagesinsqlite.Picture
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
@@ -25,7 +24,6 @@ import java.io.IOException
 import java.io.InputStream
 
 
-//github change
 class PrankActivity : AppCompatActivity() {
 
     private val STORAGE_PERMISSION_CODE = 1
@@ -157,7 +155,7 @@ class PrankActivity : AppCompatActivity() {
         try {
             var exif: ExifInterface? = null
             try {
-                exif = ExifInterface(imageInBitmapForm)
+                exif = ExifInterface(imageInBitmapForm!!)
             } catch (e1: IOException) {
                 e1.printStackTrace()
             }

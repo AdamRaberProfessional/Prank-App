@@ -1,4 +1,4 @@
-package adam.illhaveacompany.saveimagesinsqlite
+package adam.illhaveacompany.backgroundcheck
 
 import android.graphics.Bitmap
 
